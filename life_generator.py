@@ -6,8 +6,6 @@ import re
 import sys
 import os
 import threading
-import time
-import numpy as np
 
 class Life_Generator(Frame):
 
