@@ -4,10 +4,14 @@ from tkinter.ttk import *
 import pandas as pd 
 import re
 import sys
+import os
+import threading
+import time
+import numpy as np
 
-class GUI(Frame):
+class Life_Generator(Frame):
 
-    def __init__(self, input_file, wrapper1=None, wrapper2=None):
+    def __init__(self, input_file, pg_addresses, wrapper1=None, wrapper2=None):
         
         Frame.__init__(self, wrapper1)
         Frame.__init__(self, wrapper2)
@@ -22,6 +26,8 @@ class GUI(Frame):
 
         self.input_csv = self.read_input_file(input_file)
         
+        self.addresses = pg_addresses
+
         self.category_items = None
         self.num_item = None
         self.toys = None
@@ -40,9 +46,15 @@ class GUI(Frame):
     def read_input_file(self, input_file):
         
         if(input_file is not None):
-            return pd.read_csv(input_file, delimiter=',')
+            return pd.read_csv(input_file, delimiter=",")
         else:
             return None
+
+    def check_person_generator_data(self):
+        if self.addresses is not None:
+            return True
+        else:
+            return False
 
     def check_input_csv(self):
         
@@ -53,7 +65,7 @@ class GUI(Frame):
     
     def read_kaggle_csv(self):
         
-        self.toys = pd.read_csv('./amazon_co-ecommerce_sample.csv', delimiter= ',')
+        self.toys = pd.read_csv("./amazon_co-ecommerce_sample.csv", delimiter= ",")
 
     #function splits the nested categories
     def map_categories(self, data):
@@ -66,7 +78,7 @@ class GUI(Frame):
     #function creates a unique set of main categories from nested categories
     def create_categories(self):
 
-        category_lists = self.toys['amazon_category_and_sub_category'].apply(self.map_categories)
+        category_lists = self.toys["amazon_category_and_sub_category"].apply(self.map_categories)
         return set(category_lists[category_lists.map(lambda c: len(c) > 0)].map(lambda l: l[0]))
 
     def intro_widget(self):
@@ -84,7 +96,7 @@ Choose from the options to start your search. \n Also don't forget to enter the 
 
         self.category_items = Combobox(self.canvas1)
         self.category_items.grid(row=3, column=1)
-        self.category_items['values'] = tuple(option for option in main_categories) 
+        self.category_items["values"] = tuple(option for option in main_categories) 
     
     def number_widget(self):
 
@@ -101,9 +113,9 @@ Choose from the options to start your search. \n Also don't forget to enter the 
 
         #button disabled when input.csv is not given by the user
         if not self.check_input_csv():
-            result_button['command'] = self.handle_button_click
+            result_button["command"] = self.handle_button_click
         else:
-            result_button['state'] = DISABLED
+            result_button["state"] = DISABLED
     
     #function to create widgets for input in GUI #canvas1
     def create_widgets(self, main_categories):
@@ -179,18 +191,29 @@ Choose from the options to start your search. \n Also don't forget to enter the 
         self.create_table_layout(rows, input_item_category, sorted_toys)
         self.export_csv(sorted_toys)
     
+    #Function changes the reviews of type string to numeric and stores it in a new column
+    def add_review_column(self):
+        review = []
+        for result in self.toys_with_ratings.number_of_reviews:
+            if type(result) == str:
+                number = int(result.replace(",", ""))
+                review.append(number)
+            else:
+                review.append(0)
+        self.toys_with_ratings = self.toys_with_ratings.assign(reviews = review)
+    
     #Function sorts by unique id in ascending and then sorts by number of reviews in descending order
     def sort_by_review(self):
         
-        self.toys_with_ratings['number_of_reviews'] = pd.to_numeric(self.toys_with_ratings['number_of_reviews'])
-        sorted_by_id = self.toys_with_ratings.sort_values(by=['uniq_id'])
-        return sorted_by_id.sort_values('number_of_reviews', ascending=False)
+        self.add_review_column()    
+        sorted_by_id = self.toys_with_ratings.sort_values(by=["uniq_id"])
+        return sorted_by_id.sort_values(by=["reviews"], ascending=[False])
 
     #Function sorts by unique id in ascending and then sorts by ratings in descending order
     def sort_by_rating(self, filtered_toys):
 
-        sorted_by_id = filtered_toys.sort_values(by=['uniq_id'])
-        return sorted_by_id.sort_values(by=['ratings'], ascending=[False])
+        sorted_by_id = filtered_toys.sort_values(by=["uniq_id"])
+        return sorted_by_id.sort_values(by=["ratings"], ascending=[False])
 
     #Take the X*10 results
     def get_ten_x_results(self, num_results, sorted_by_review):
@@ -222,9 +245,9 @@ Choose from the options to start your search. \n Also don't forget to enter the 
 
         #For each input, filter by category, add rating column, sort the results and add it to the dataframe
         for i in range(0, num_rows):
-            self.filter_by_category(self.input_csv['input_item_category'][i])
+            self.filter_by_category(self.input_csv["input_item_category"][i])
             self.add_ratings()
-            num_results = self.input_csv['input_number_to_generate'][i]
+            num_results = self.input_csv["input_number_to_generate"][i]
             
             sorted_results = self.sort_results(num_results)
 
@@ -240,6 +263,9 @@ Choose from the options to start your search. \n Also don't forget to enter the 
     #creates treeview for holding the outputs as a table
     def create_tree(self, column_names):
         
+        if(self.check_person_generator_data()):
+            column_names.append("addresses")
+        
         tree = Treeview(self.canvas2, selectmode="extended", columns=tuple(column_names), height="15", show="headings")
         tree.pack(side=LEFT, expand=YES, fill=BOTH)
         tree.place(x=10, y=50)
@@ -251,13 +277,20 @@ Choose from the options to start your search. \n Also don't forget to enter the 
         tree.heading("#3", text="PRODUCT NAME")
         tree.heading("#4", text="AVERAGE RATING")
         tree.heading("#5", text="N0. OF REVIEWS")
-
+        
+        if(self.check_person_generator_data()):
+            tree.heading("#6", text="ADDRESSES")
+        
         #specify the attributes of each column
         tree.column("#1", stretch=NO, width=50)
         tree.column("#2", stretch=NO, width=150)
-        tree.column("#3", stretch=YES, minwidth=100, width=900)
+        tree.column("#3", stretch=YES, minwidth=100, width=400)
         tree.column("#4", stretch=YES)
         tree.column("#5", stretch=NO, width=100)
+        
+        if(self.check_person_generator_data()):
+            tree.column("#6",stretch=YES, minwidth=100, width=200)
+        
         return tree
 
     #creates widgets for output in GUI #canvas2
@@ -275,7 +308,10 @@ Choose from the options to start your search. \n Also don't forget to enter the 
                 category = toys.iloc[i-1]["amazon_category_and_sub_category"]
                 category_list = category.split(" >", 1)
                 category = category_list[0]
-            tree.insert('','end',iid=i+1, text=str(i-1), values=(str(i), category, toys.iloc[i-1][column_names[2]], toys.iloc[i-1][column_names[3]], toys.iloc[i-1][column_names[4]]))
+            if self.check_person_generator_data():
+                tree.insert("","end",iid=i+1, text=str(i-1), values=(str(i), category, toys.iloc[i-1][column_names[2]], toys.iloc[i-1][column_names[3]], toys.iloc[i-1][column_names[4]], self.addresses.iloc[i-1]["VALUE"]))
+            else:
+                tree.insert("","end",iid=i+1, text=str(i-1), values=(str(i), category, toys.iloc[i-1][column_names[2]], toys.iloc[i-1][column_names[3]], toys.iloc[i-1][column_names[4]]))
                 
         self.canvas2.pack()
 
@@ -314,19 +350,79 @@ Choose from the options to start your search. \n Also don't forget to enter the 
 
         final_dataframe.to_csv(r'./output.csv', index = False)
         
+class Person_Generator:
+
+    def __init__(self):
+        
+        self.addresses = None
+        self.get_person_generator()
+
+
+    def get_directory(self):
+        current_directory = os.getcwd()
+        parent_directory = os.path.split(current_directory)[0]
+        return (current_directory, parent_directory + "/Person_Generator")
+
+    def monitor_csv(self):
+        
+        print("Thread started")
+        directories = self.get_directory()
+        person_generator_directory = directories[1]
+        file_name = person_generator_directory + "/output_PG.csv"
+        
+        stop_thread = False 
+        while stop_thread is False:
+            if(os.path.isfile(file_name)):
+                current_time = os.path.getmtime(file_name)
+                print(current_time)
+                check = True
+                while check:
+                    updated_time = os.path.getmtime(file_name)
+                    if updated_time != current_time:
+                        self.addresses = pd.read_csv(file_name, delimiter= ",")
+                        print(updated_time, current_time)
+                        check = False
+                stop_thread = True
+                print(stop_thread)
+        print("Thread terminated")
+
+    def get_person_generator(self):
+        
+        t1 = threading.Thread(target=self.monitor_csv, name="t1")
+        t1.start()
+        
+        life_generator_directory, person_generator_directory = self.get_directory()
+
+        os.chdir(person_generator_directory)
+        command = "python3 person-generator.py"
+        os.system(command)
+        t1.join()
+        os.chdir(life_generator_directory)
+        return
+
+def prompt_user():
+        
+        user_choice = input("Would like to get data from Person Generator? (Y/N)")
+        return user_choice
 
 if __name__ == "__main__":
+    
+    input_file, addresses = None, None
     
     #get the input file name, if given
     if(len(sys.argv) >= 2):
         input_file =  sys.argv[1]
     else:
+        user_choice = prompt_user()
         input_file = None
-
+        if(user_choice == "Y"):
+            microservice_two = Person_Generator()
+            addresses = microservice_two.addresses
+    
     #create a tkinter window
     root= Tk()
     root.title("Life Generator")
     root.geometry("1500x800")
-    app = GUI(input_file, root, root)
+    app = Life_Generator(input_file, addresses, root, root)
     root.resizable(False, False) #fixed window
     root.mainloop()
