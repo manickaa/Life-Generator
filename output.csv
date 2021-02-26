@@ -1,9 +1,3 @@
 input_item_type,input_item_category,input_number_to_generate,output_item_name,output_item_rating,output_item_num_reviews
-toys,Hobbies,2,Magic the Gathering 2015 Deck Builders Tool Kit,4.8 out of 5 stars,75.0
-toys,Hobbies,2,Bigjigs Rail Crazy Track (Pack of 2),4.8 out of 5 stars,47.0
-toys,Educational Toys,3,"Snap Cubes®, Set of 500",4.8 out of 5 stars,5.0
-toys,Educational Toys,3,Babylon Tower - Rare Twisty Puzzle 1980's - Ancient Brain-Teaser - Historic Puzzle,4.5 out of 5 stars,2.0
-toys,Educational Toys,3,Vilac Alphabet Magnets Lowercase Letters,4.0 out of 5 stars,1.0
-toys,Gardening,3,Melissa & Doug Giddy Bug Trowel,5.0 out of 5 stars,4.0
-toys,Gardening,3,Garden Hand Trowel,5.0 out of 5 stars,3.0
-toys,Gardening,3,Twigz Childrens Gardening Tools 0825 Mini Greenhouse,4.5 out of 5 stars,2.0
+toys,Hobbies,2,Magic the Gathering 2015 Deck Builders Tool Kit,4.8 out of 5 stars,75
+toys,Hobbies,2,Bigjigs Rail Crazy Track (Pack of 2),4.8 out of 5 stars,47
