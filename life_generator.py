@@ -49,6 +49,11 @@ class Life_Generator(Frame):
         output_csv.set_is_input_csv(self.input.check_input_csv())
         output_csv.export_csv()
 
+    def handle_sort(self, category, number):
+
+        sorted = Sort_Handler(self.toys, category, number)
+        return sorted.sort_results()
+
     def handle_button_click(self):
 
         input_item_category = self.input_widgets.category_items.get()
@@ -57,9 +62,7 @@ class Life_Generator(Frame):
         if(self.check_errors(input_item_category, input_number_to_generate)):
             return
         
-        sorted = Sort_Handler(self.toys, input_item_category, input_number_to_generate)
-        
-        sorted_toys = sorted.sort_results()
+        sorted_toys = self.handle_sort(input_item_category, input_number_to_generate)
         
         rows = self.get_rows(input_number_to_generate, sorted_toys)
 
@@ -76,7 +79,7 @@ class Life_Generator(Frame):
         else:
             return False
 
-    #assign rows based on the value(num to generate) given by user exceeds the number of results actually available or not
+    #returns rows after validation
     def get_rows(self, user_input, sorted_toys):
         
         if sorted_toys.shape[0] >= int(user_input):
@@ -95,8 +98,8 @@ class Life_Generator(Frame):
             category = self.input.input_csv["input_item_category"][i]
             number = self.input.input_csv["input_number_to_generate"][i]
             
-            sorted = Sort_Handler(self.toys, category, number)
-            sorted_toys = sorted.sort_results()
+            sorted_toys = self.handle_sort(category, number)
+            
             output_dataframe = output_dataframe.append(sorted_toys)
 
         total_results = int(output_dataframe.shape[0])

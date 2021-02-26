@@ -33,12 +33,14 @@ class Sort_Handler():
     def add_ratings_column(self):
 
         rating = []
+        
         for result in self.toys_by_category.average_review_rating:
             if type(result) == str:
-                splitList = result.split(" ", 1)
-                rating.append(float(splitList[0]))
+                split_list = result.split(" ", 1)
+                rating.append(float(split_list[0]))
             else:
                 rating.append(0)
+        
         self.toys_with_ratings = self.toys_by_category.assign(ratings = rating)
 
     #Function changes the reviews of type string to numeric and stores it in a new column
@@ -52,17 +54,11 @@ class Sort_Handler():
                 review.append(0)
         self.toys_with_ratings = self.toys_with_ratings.assign(reviews = review)
 
-    #Function sorts by unique id in ascending and then sorts by number of reviews in descending order
-    def sort_by_review(self):
-         
-        sorted_by_id = self.toys_with_ratings.sort_values(by=["uniq_id"])
-        return sorted_by_id.sort_values(by=["reviews"], ascending=[False])
-
-    #Function sorts by unique id in ascending and then sorts by ratings in descending order
-    def sort_by_rating(self, filtered_toys):
-
-        sorted_by_id = filtered_toys.sort_values(by=["uniq_id"])
-        return sorted_by_id.sort_values(by=["ratings"], ascending=[False])
+    #Function sorts by unique id in ascending and then sorts by column in descending order
+    def sort_by_column(self, toys, column):
+        
+        sorted_by_id = toys.sort_values(by=["uniq_id"])
+        return sorted_by_id.sort_values(by=[column], ascending=[False])
 
     def get_ten_x_results(self, sorted_by_review):
 
@@ -73,14 +69,13 @@ class Sort_Handler():
         
         return sorted_by_review[0:rows]
     
-    #sort the data based on the given algorithm
     def sort_results(self):
        
-        sorted_by_review = self.sort_by_review()
+        sorted_by_review = self.sort_by_column(self.toys_with_ratings, "reviews")
         
         filtered_toys = self.get_ten_x_results(sorted_by_review)
 
-        sorted_by_rating = self.sort_by_rating(filtered_toys)
+        sorted_by_rating = self.sort_by_column(filtered_toys, "ratings")
         
         #Take X results
         return sorted_by_rating[0:int(self.selected_num)]

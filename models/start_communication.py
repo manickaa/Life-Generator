@@ -16,7 +16,7 @@ class Start_Communication:
 
     def monitor_csv(self):
         
-        print("Thread started")
+        print("Monitoring changes in Person-Generator's output.csv")
         directories = self.get_directory()
         person_generator_directory = directories[1]
         file_name = person_generator_directory + "/output.csv"
@@ -25,20 +25,18 @@ class Start_Communication:
         while stop_thread is False:
             if(os.path.isfile(file_name)):
                 current_time = os.path.getmtime(file_name)
-                print(current_time)
                 check = True
                 while check:
                     updated_time = os.path.getmtime(file_name)
                     if updated_time != current_time:
+                        print("Changes detected..Reading output.csv")
                         self.addresses = pd.read_csv(file_name, delimiter= ",")
-                        print(updated_time, current_time)
                         check = False
                 stop_thread = True
-                print(stop_thread)
-        print("Thread terminated")
 
     def start_person_generator(self):
         
+        print("Starting Person-Generator")
         t1 = threading.Thread(target=self.monitor_csv, name="t1")
         t1.start()
         

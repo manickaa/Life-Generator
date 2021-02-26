@@ -24,57 +24,72 @@ class Output_Widgets():
             self.is_address = True
         self.addresses = addresses
 
-    #creates treeview for holding the outputs as a table
+    def assign_headings(self):
+
+        self.tree.heading("#0", text="")
+        self.tree.heading("#1", text="S.NO")
+        self.tree.heading("#2", text="TYPE")
+        self.tree.heading("#3", text="PRODUCT NAME")
+        self.tree.heading("#4", text="AVERAGE RATING")
+        self.tree.heading("#5", text="N0. OF REVIEWS")
+        
+        if(self.is_address):
+            self.tree.heading("#6", text="ADDRESSES")
+
+    def assign_attributes(self):
+
+        self.tree.column("#1", stretch=NO, width=50)
+        self.tree.column("#2", stretch=NO, width=150)
+        self.tree.column("#3", stretch=YES, minwidth=100, width=400)
+        self.tree.column("#4", stretch=YES)
+        self.tree.column("#5", stretch=NO, width=100)
+        
+        if(self.is_address):
+            self.tree.column("#6",stretch=YES, minwidth=100, width=400)
+        
+    #treeview for holding the outputs as a table
     def create_tree(self, column_names):
         
         if(self.is_address):
             column_names.append("addresses")
         
-        tree = Treeview(self.canvas, selectmode="extended", columns=tuple(column_names), height="15", show="headings")
-        tree.pack(side=LEFT, expand=YES, fill=BOTH)
-        tree.place(x=10, y=50)
+        self.tree = Treeview(self.canvas, selectmode="extended", columns=tuple(column_names), height="15", show="headings")
+        self.tree.pack(side=LEFT, expand=YES, fill=BOTH)
+        self.tree.place(x=10, y=50)
         
-        #assign headings to the columns
-        tree.heading("#0", text="")
-        tree.heading("#1", text="S.NO")
-        tree.heading("#2", text="TYPE")
-        tree.heading("#3", text="PRODUCT NAME")
-        tree.heading("#4", text="AVERAGE RATING")
-        tree.heading("#5", text="N0. OF REVIEWS")
+        self.assign_headings()
         
-        if(self.is_address):
-            tree.heading("#6", text="ADDRESSES")
-        
-        #specify the attributes of each column
-        tree.column("#1", stretch=NO, width=50)
-        tree.column("#2", stretch=NO, width=150)
-        tree.column("#3", stretch=YES, minwidth=100, width=400)
-        tree.column("#4", stretch=YES)
-        tree.column("#5", stretch=NO, width=100)
-        
-        if(self.is_address):
-            tree.column("#6",stretch=YES, minwidth=100, width=200)
-        
-        return tree
+        self.assign_attributes()
 
-    #creates widgets for output in GUI #canvas2
-    def create_table_layout(self):
-        
+    def result_label_widget(self):
+
         results_label = Label(self.canvas, text = "RESULTS:")
         results_label.place(x=10, y=20)
 
-        column_names = ["serial_num", "amazon_category","product_name", "average_review_rating", "number_of_reviews"]
-        tree = self.create_tree(column_names)
+    def insert_rows(self, column_names):
 
-        #insert each row into the treeview
         for i in range(1, self.total_rows+1):
             if self.is_input_file:
                 category = self.sorted_toys.iloc[i-1]["amazon_category_and_sub_category"]
                 category_list = category.split(" >", 1)
                 self.category = category_list[0]
+            
+            column_values = [str(i), self.category, self.sorted_toys.iloc[i-1][column_names[2]], self.sorted_toys.iloc[i-1][column_names[3]], self.sorted_toys.iloc[i-1][column_names[4]]]
+            
             if self.is_address:
-                tree.insert("","end",iid=i+1, text=str(i-1), values=(str(i), self.category, self.sorted_toys.iloc[i-1][column_names[2]], self.sorted_toys.iloc[i-1][column_names[3]], self.sorted_toys.iloc[i-1][column_names[4]], self.addresses.iloc[i-1]["VALUE"]))
+                column_values.append(self.addresses.iloc[i-1]["VALUE"])
+                self.tree.insert("","end",iid=i+1, text=str(i-1), values=tuple(column_values))
             else:
-                tree.insert("","end",iid=i+1, text=str(i-1), values=(str(i), self.category, self.sorted_toys.iloc[i-1][column_names[2]], self.sorted_toys.iloc[i-1][column_names[3]], self.sorted_toys.iloc[i-1][column_names[4]]))
+                
+                self.tree.insert("","end",iid=i+1, text=str(i-1), values=tuple(column_values))
+    
+    def create_table_layout(self):
+        
+        self.result_label_widget()
+
+        column_names = ["serial_num", "amazon_category","product_name", "average_review_rating", "number_of_reviews"]
+        self.create_tree(column_names)
+
+        self.insert_rows(column_names)
                 
         self.canvas.pack()
