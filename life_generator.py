@@ -1,18 +1,18 @@
 from imports import *
 
+#responsible for running the Life-Generator microservice
 class Life_Generator(Frame):
 
-    def __init__(self, input_file, pg_addresses, wrapper1=None, wrapper2=None):
+    def __init__(self, input_file, pg_addresses, wrapper1=None):
         
         Frame.__init__(self, wrapper1)
-        Frame.__init__(self, wrapper2)
         
         #canvas to wrap the input area in GUI
         self.canvas1 = Canvas(wrapper1, height=500, width=1500)
         self.canvas1.pack()
         
         #canvas to wrap the output area in GUI
-        self.canvas2 = Canvas(wrapper2, height=1500, width=1500)
+        self.canvas2 = Canvas(wrapper1, height=1500, width=1500)
         self.canvas2.pack()
 
         self.addresses = pg_addresses
@@ -28,7 +28,7 @@ class Life_Generator(Frame):
 
     def program_control(self):
 
-        if(not self.input.check_input_csv()):
+        if(not self.input.has_input_csv()):
             self.input_widgets.result_button["command"] = self.handle_button_click
         else:
             self.input_widgets.result_button["state"] = DISABLED
@@ -36,8 +36,9 @@ class Life_Generator(Frame):
 
     def show_output(self, rows, toys, category):
         
-        output_widgets = Output_Widgets(rows, toys, category, self.canvas2)
-        output_widgets.set_is_input_file(self.input.check_input_csv())
+        output_widgets = Output_Widgets(rows, toys, self.canvas2)
+        output_widgets.set_category(category)
+        output_widgets.set_is_input_file(self.input.has_input_csv())
         output_widgets.set_address(self.addresses)
         output_widgets.create_table_layout()
 
@@ -46,7 +47,7 @@ class Life_Generator(Frame):
         output_csv = Output_CSV_Hander(toys, self.input.input_csv)
         output_csv.set_category(category)
         output_csv.set_number(number)
-        output_csv.set_is_input_csv(self.input.check_input_csv())
+        output_csv.set_is_input_csv(self.input.has_input_csv())
         output_csv.export_csv()
 
     def handle_sort(self, category, number):
@@ -59,8 +60,12 @@ class Life_Generator(Frame):
         input_item_category = self.input_widgets.category_items.get()
         input_number_to_generate = self.input_widgets.num_item.get()
 
-        if(self.check_errors(input_item_category, input_number_to_generate)):
+        if(self.has_errors(input_item_category, input_number_to_generate)):
             return
+        
+        self.update_output(input_item_category, input_number_to_generate)
+        
+    def update_output(self, input_item_category, input_number_to_generate):
         
         sorted_toys = self.handle_sort(input_item_category, input_number_to_generate)
         
@@ -71,7 +76,7 @@ class Life_Generator(Frame):
         self.handle_output_csv(sorted_toys, input_item_category, input_number_to_generate)
 
     #message box pop-up when inputs are not given by the user
-    def check_errors(self, input_item_category, input_number_to_generate):
+    def has_errors(self, input_item_category, input_number_to_generate):
         
         if ((not str(input_item_category)) or (not str(input_number_to_generate))):
             messagebox.showerror("Error", "Check if all inputs are entered")
@@ -79,7 +84,7 @@ class Life_Generator(Frame):
         else:
             return False
 
-    #returns rows after validation
+    #returns valid rows after validation of user input
     def get_rows(self, user_input, sorted_toys):
         
         if sorted_toys.shape[0] >= int(user_input):
@@ -89,11 +94,9 @@ class Life_Generator(Frame):
 
     def generate_results_for_input_csv(self):
         
-        num_rows = int(self.input.input_csv.shape[0])
-
         output_dataframe = pd.DataFrame()
 
-        for i in range(0, num_rows):
+        for i in range(0, int(self.input.input_csv.shape[0])):
             
             category = self.input.input_csv["input_item_category"][i]
             number = self.input.input_csv["input_number_to_generate"][i]
@@ -116,8 +119,8 @@ def create_tkinter(input_file, addresses):
     root= Tk()
     root.title("Life Generator")
     root.geometry("1500x800")
-    Life_Generator(input_file, addresses, root, root)
-    root.resizable(False, False) #fixed window
+    Life_Generator(input_file, addresses, root)
+    #root.resizable(False, False) #fixed window
     root.mainloop()
 
 def prompt_user():

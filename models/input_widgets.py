@@ -8,16 +8,20 @@ class Input_Widgets():
         self.canvas = canvas
         self.create_widgets(main_categories)
 
-
+    def place_in_grid(self, widget, custom_row, custom_column):
+        
+        widget.grid(row=custom_row, column=custom_column)
+    
     def create_label(self, custom_text, custom_row, custom_column):
 
         label = Label(self.canvas, text=custom_text)
-        label.grid(row=custom_row, column=custom_column)
+        self.place_in_grid(label, custom_row, custom_column)
 
     def intro_widget(self):
         
-        introText = "Confused about what to buy? We have a bunch of categories to help with your search. \n\
-Choose from the options to start your search. \n Also don't forget to enter the number of results you want ;)"
+        introText = "Confused about what to buy? We have a bunch of categories to help \
+with your search. \n Choose from the options to start your search. \n Also don't forget \
+to enter the number of results you want ;)"
 
         self.create_label(introText, 1, 0)
 
@@ -27,7 +31,7 @@ Choose from the options to start your search. \n Also don't forget to enter the 
         self.create_label(placeholder_text, 3, 0)
 
         self.category_items = Combobox(self.canvas)
-        self.category_items.grid(row=3, column=1)
+        self.place_in_grid(self.category_items, 3, 1)
         self.category_items["values"] = tuple(option for option in main_categories) 
     
     def number_widget(self):
@@ -36,12 +40,12 @@ Choose from the options to start your search. \n Also don't forget to enter the 
         self.create_label(placeholder_text, 5, 0)
 
         self.num_item = Spinbox(self.canvas, from_=1, to=10000)
-        self.num_item.grid(row=5, column=1)
+        self.place_in_grid(self.num_item, 5, 1)
 
     def button_widget(self):
 
         self.result_button = Button(self.canvas, text="Get Output")
-        self.result_button.grid(row=7, column=1)
+        self.place_in_grid(self.result_button, 7, 1)
 
     def create_widgets(self, main_categories):
 

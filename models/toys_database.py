@@ -20,5 +20,6 @@ class Toys_Database_Handler():
     #function creates a unique set of main categories from nested categories
     def create_categories(self):
 
-        category_lists = self.toys_csv["amazon_category_and_sub_category"].apply(self.map_categories)
+        column_name = "amazon_category_and_sub_category"
+        category_lists = self.toys_csv[column_name].apply(self.map_categories)
         return set(category_lists[category_lists.map(lambda c: len(c) > 0)].map(lambda l: l[0]))

@@ -13,7 +13,7 @@ class Input_CSV_Handler():
         else:
             return None
 
-    def check_input_csv(self):
+    def has_input_csv(self):
         
         if self.input_csv is not None:
             return True

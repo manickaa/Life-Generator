@@ -8,6 +8,8 @@ class Output_CSV_Hander():
         self.input_csv = input_csv
         self.is_input_csv = False
 
+        self.rows = 0
+
         self.selected_category = None
         self.selected_number = None
     
@@ -23,9 +25,9 @@ class Output_CSV_Hander():
 
         self.selected_number = number
 
-    def get_types(self, rows):
+    def get_types(self):
 
-        return ["toys" for i in range(0, rows)]
+        return ["toys" for i in range(0, self.rows)]
 
     def create_lists_with_input_csv(self):
         
@@ -38,48 +40,56 @@ class Output_CSV_Hander():
             for _ in range(0, num_to_gen):
                 categories.append(category)
                 nums.append(num_to_gen)
-        
         return categories, nums
 
-    def create_lists_with_user_input(self, rows):
+    def create_lists_with_user_input(self):
 
         categories, nums = [], []
         
         category = self.selected_category
         num = self.selected_number
         
-        for _ in range(0, rows):
+        for _ in range(0, self.rows):
             categories.append(category)
             nums.append(num)
         
         return categories, nums
         
-    def get_inputs_as_list(self, rows):
+    def get_inputs_as_list(self):
         
         if self.is_input_csv:
             return self.create_lists_with_input_csv()    
         else:
-            return self.create_lists_with_user_input(rows)
+            return self.create_lists_with_user_input()
             
     
-    def create_final_dataframe(self, rows, types, categories, nums):
+    def create_final_dataframe(self, types, categories, nums):
 
-        final_dataframe = pd.DataFrame({"input_item_type":types, "input_item_category":categories, "input_number_to_generate":nums})
+        final_dataframe = pd.DataFrame({"input_item_type":types, 
+            "input_item_category":categories, "input_number_to_generate":nums
+        })
         
-        for i in range(0, rows):
-            final_dataframe.at[i, "output_item_name"] = self.toys.iloc[i]["product_name"]
-            final_dataframe.at[i, "output_item_rating"] = self.toys.iloc[i]["average_review_rating"]
-            final_dataframe.at[i, "output_item_num_reviews"] = self.toys.iloc[i]["number_of_reviews"]
+        item_name, item_rating = "output_item_name","output_item_rating"
+        item_reviews = "output_item_num_reviews"
+
+        for i in range(0, self.rows):
+            final_dataframe.at[i, item_name] = self.toys.iloc[i]["product_name"]
+            final_dataframe.at[i, item_rating] = self.toys.iloc[i]["average_review_rating"]
+            final_dataframe.at[i, item_reviews] = self.toys.iloc[i]["number_of_reviews"]
 
         return final_dataframe
 
+    def prepare_to_export_csv(self):
+
+        self.rows = int(self.toys.shape[0])
+
+        types = self.get_types()
+        categories, nums = self.get_inputs_as_list()
+
+        return self.create_final_dataframe(types, categories, nums)
+
     def export_csv(self):
         
-        rows = int(self.toys.shape[0])
-        
-        types = self.get_types(rows)
-        categories, nums = self.get_inputs_as_list(rows)
-        
-        final_dataframe = self.create_final_dataframe(rows, types, categories, nums)
+        final_dataframe = self.prepare_to_export_csv()
 
         final_dataframe.to_csv(r"./output.csv", index = False)

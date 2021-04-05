@@ -15,6 +15,8 @@ Output - Shown in GUI and also downloaded as 'output.csv' in the same directory
 
 Use case 3 - When we want to get data from person generator
 
+<Note - Life-Generator and Person-Generator should in the same parent folder>
+
 When ```python3 life_generator.py``` is run, the command line terminal prompts the user whether they would like to get data from person generator.
 
 If user types "Y", data is requested to person-generator and response data is displayed in GUI [You would need to give life-generator inputs in GUI inorder to place the address data corresponding to toys data].
@@ -38,5 +40,6 @@ Software Architecture:
 
 How to run the Software?
 
-    For use case 1 - $ python3 life_generator.py
+    For use case 1 - $ python3 life_generator.py - When prompted type 'N'
     For use case 2 - $ python3 life_generator.py input.csv
+    For use case 3 - $ python3 life_generator.py - When prompted type 'Y'

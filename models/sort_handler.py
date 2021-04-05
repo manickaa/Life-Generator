@@ -29,7 +29,7 @@ class Sort_Handler():
 
         self.toys_by_category = self.toys[filtered_category]
     
-    #The data from average_review_rating is split, converted to float and assigned to the newly created ratings column
+    #splits the rating from string and assigns to new column
     def add_ratings_column(self):
 
         rating = []
@@ -43,7 +43,7 @@ class Sort_Handler():
         
         self.toys_with_ratings = self.toys_by_category.assign(ratings = rating)
 
-    #Function changes the reviews of type string to numeric and stores it in a new column
+    #converts the review to numeric and assigns to new column
     def add_review_column(self):
         review = []
         for result in self.toys_with_ratings.number_of_reviews:
@@ -62,7 +62,8 @@ class Sort_Handler():
 
     def get_ten_x_results(self, sorted_by_review):
 
-        if(int(self.selected_num)*10 > sorted_by_review.shape[0]): #Check to adjust if the X*10 qty exceeds the actual qty.
+        #Check to adjust if the X*10 qty exceeds the actual qty.
+        if(int(self.selected_num)*10 > sorted_by_review.shape[0]): 
             rows = sorted_by_review.shape[0]
         else:
             rows = int(self.selected_num)*10
